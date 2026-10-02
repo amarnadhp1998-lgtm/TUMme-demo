@@ -161,7 +161,7 @@ class _InventoryItemScreenState extends ConsumerState<InventoryItemScreen> {
             controller: lowStockThreshold,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
-              labelText: 'Low-stock alert (${unit})',
+              labelText: 'Low-stock alert ($unit)',
               helperText: 'Use 0 to turn suggestions off.',
             ),
             validator: (value) {
@@ -302,11 +302,13 @@ class _InventoryItemScreenState extends ConsumerState<InventoryItemScreen> {
                                           );
                                         }
                                       } catch (_) {
-                                        if (mounted)
+                                        if (mounted) {
                                           _message('Could not update stock.');
+                                        }
                                       } finally {
-                                        if (mounted)
+                                        if (mounted) {
                                           setState(() => busy = false);
+                                        }
                                       }
                                     },
                               child: const Text('Use earliest-expiring stock'),

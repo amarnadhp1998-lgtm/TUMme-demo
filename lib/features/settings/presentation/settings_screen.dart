@@ -216,8 +216,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ),
           FilledButton(
             onPressed: () {
-              if (formKey.currentState!.validate())
+              if (formKey.currentState!.validate()) {
                 Navigator.pop(context, true);
+              }
             },
             child: const Text('Save'),
           ),
@@ -245,7 +246,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         }
       }
     }
-    for (final controller in controllers) controller.dispose();
+    for (final controller in controllers) {
+      controller.dispose();
+    }
   }
 
   Future<void> editAccount(AccountSettings current) async {
@@ -499,7 +502,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             .read(profileSettingsRepositoryProvider)
                             .setAiPersonalization(value);
                       } catch (_) {
-                        if (mounted) {
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
                               content: Text('Could not update AI preference.'),

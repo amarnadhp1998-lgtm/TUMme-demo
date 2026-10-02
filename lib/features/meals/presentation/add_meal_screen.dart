@@ -55,8 +55,10 @@ class _AddMealScreenState extends ConsumerState<AddMealScreen> {
     super.dispose();
   }
 
-  NutritionSnapshot get totals =>
-      lines.fold(NutritionSnapshot.zero, (sum, line) => sum + line.nutrition);
+  NutritionSnapshot get totals => lines.fold(
+    NutritionSnapshot.zero,
+    (total, line) => total + line.nutrition,
+  );
 
   Future<void> save() async {
     if (mode != MealEntryMode.manual && lines.isEmpty) {
@@ -65,8 +67,9 @@ class _AddMealScreenState extends ConsumerState<AddMealScreen> {
       ).showSnackBar(const SnackBar(content: Text('Add at least one food.')));
       return;
     }
-    if (mode == MealEntryMode.manual && !formKey.currentState!.validate())
+    if (mode == MealEntryMode.manual && !formKey.currentState!.validate()) {
       return;
+    }
     setState(() => busy = true);
     try {
       final repository = ref.read(mealRepositoryProvider);
@@ -342,8 +345,9 @@ class _AddMealScreenState extends ConsumerState<AddMealScreen> {
       for (final item in result.items) {
         if (item.foodId == null ||
             item.quantity == null ||
-            item.needsConfirmation)
+            item.needsConfirmation) {
           continue;
+        }
         final matches = developmentFoodCatalog.where(
           (food) => food.id == item.foodId,
         );
@@ -360,13 +364,14 @@ class _AddMealScreenState extends ConsumerState<AddMealScreen> {
           ),
         );
       }
-      if (mounted)
+      if (mounted) {
         setState(() {
           parseResult = result;
           lines
             ..clear()
             ..addAll(resolved);
         });
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

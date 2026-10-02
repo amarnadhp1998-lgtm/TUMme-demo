@@ -47,9 +47,9 @@ class DailyNutrition {
     return DailyNutrition(
       date: DateTime(date.year, date.month, date.day),
       meals: List.unmodifiable(meals),
-      energyKcal: meals.fold(0.0, (sum, meal) => sum + meal.energyKcal),
-      proteinG: meals.fold(0.0, (sum, meal) => sum + meal.proteinG),
-      fiberG: meals.fold(0.0, (sum, meal) => sum + meal.fiberG),
+      energyKcal: meals.fold(0.0, (total, meal) => total + meal.energyKcal),
+      proteinG: meals.fold(0.0, (total, meal) => total + meal.proteinG),
+      fiberG: meals.fold(0.0, (total, meal) => total + meal.fiberG),
     );
   }
 }
@@ -168,7 +168,7 @@ class MealRepository {
   }) {
     final totals = lines.fold<NutritionSnapshot>(
       NutritionSnapshot.zero,
-      (sum, line) => sum + line.nutrition,
+      (total, line) => total + line.nutrition,
     );
     return collection.add({
       'mealType': mealType,

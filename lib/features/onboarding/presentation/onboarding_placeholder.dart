@@ -153,10 +153,11 @@ class _OnboardingState extends ConsumerState<OnboardingPlaceholder> {
       final index = paths.indexOf(widget.path);
       if (mounted && index < paths.length - 1) context.go(paths[index + 1]);
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Could not save this step. Try again.')),
         );
+      }
     } finally {
       if (mounted) setState(() => busy = false);
     }
@@ -171,10 +172,11 @@ class _OnboardingState extends ConsumerState<OnboardingPlaceholder> {
           .record(FeatureEvent.onboardingCompleted);
       if (mounted) context.go(kitchen ? '/kitchen/add' : '/home/today');
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Could not finish setup.')),
         );
+      }
     } finally {
       if (mounted) setState(() => busy = false);
     }

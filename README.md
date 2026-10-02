@@ -3,6 +3,8 @@
 TUM.me is a Flutter personal food operating system. This repository includes a
 free browser demonstration deployed with GitHub Pages and Firebase Spark.
 
+**Live demo:** https://amarnadhp1998-lgtm.github.io/TUMme-demo/
+
 ## Free demo
 
 The Pages build supports:

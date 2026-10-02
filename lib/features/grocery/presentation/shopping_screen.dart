@@ -77,12 +77,12 @@ class ShoppingScreen extends ConsumerWidget {
                   onPressed: purchased == 0 || !AppCapabilities.groceryIntake
                       ? null
                       : () => context.push('/grocery/intake'),
-                  icon: Icon(
+                  icon: const Icon(
                     AppCapabilities.groceryIntake
                         ? Icons.kitchen_outlined
                         : Icons.lock_outline,
                   ),
-                  label: Text(
+                  label: const Text(
                     AppCapabilities.groceryIntake
                         ? 'Finish and add purchases to Kitchen'
                         : 'Kitchen intake unavailable in free demo',

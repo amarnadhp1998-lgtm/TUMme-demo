@@ -333,8 +333,9 @@ class InventoryRepository {
               .toList();
       await firestore.runTransaction((transaction) async {
         final freshLedger = await transaction.get(ledger.reference);
-        if (!freshLedger.exists || freshLedger.data()?['type'] != 'consume')
+        if (!freshLedger.exists || freshLedger.data()?['type'] != 'consume') {
           return;
+        }
         final itemSnapshot = await transaction.get(itemRef);
         final restorableBatches =
             <
