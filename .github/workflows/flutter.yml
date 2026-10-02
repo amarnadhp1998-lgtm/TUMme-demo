@@ -1,0 +1,25 @@
+name: Flutter foundation
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.4'
+          cache: true
+      - run: flutter pub get
+      - run: dart format --output=none --set-exit-if-changed lib
+      - run: flutter analyze
+      - name: Run Flutter tests when feature tests exist
+        shell: bash
+        run: |
+          if find test -name '*_test.dart' -print -quit | grep -q .; then
+            flutter test
+          fi

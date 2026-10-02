@@ -1,0 +1,351 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function owner(uid) { return signedIn() && request.auth.uid == uid; }
+
+    match /users/{uid} {
+      allow read: if owner(uid);
+      allow create: if owner(uid)
+        && request.resource.data.keys().hasOnly([
+          'displayName', 'country', 'timezone', 'unitSystem',
+          'onboardingVersion', 'onboardingCompleted', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.onboardingCompleted == false
+        && request.resource.data.onboardingVersion == 1
+        && request.resource.data.unitSystem == 'metric'
+        && request.resource.data.createdAt == request.time;
+      allow update: if owner(uid)
+        && request.resource.data.keys().hasOnly([
+          'displayName', 'country', 'timezone', 'unitSystem',
+          'onboardingVersion', 'onboardingCompleted', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.onboardingVersion == resource.data.onboardingVersion
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.unitSystem == 'metric'
+        && request.resource.data.displayName is string
+        && request.resource.data.displayName.size() >= 2
+        && request.resource.data.displayName.size() <= 80
+        && request.resource.data.country is string
+        && request.resource.data.country.size() == 2
+        && request.resource.data.timezone is string
+        && request.resource.data.updatedAt == request.time;
+      allow delete: if false;
+      match /private/{documentId} {
+        allow read: if owner(uid);
+        allow create, update: if owner(uid)
+          && request.resource.data.updatedAt == request.time
+          && (
+            (documentId == 'profile'
+              && request.resource.data.keys().hasOnly([
+                'dateOfBirth', 'sexForReferenceCalculation', 'heightCm',
+                'weightKg', 'activityLevel', 'updatedAt'
+              ])
+              && request.resource.data.dateOfBirth is string
+              && request.resource.data.sexForReferenceCalculation in ['male', 'female', 'unspecified']
+              && request.resource.data.heightCm is number
+              && request.resource.data.heightCm >= 80
+              && request.resource.data.heightCm <= 250
+              && request.resource.data.weightKg is number
+              && request.resource.data.weightKg >= 25
+              && request.resource.data.weightKg <= 350
+              && request.resource.data.activityLevel in ['sedentary', 'light', 'moderate', 'high', 'very_high'])
+            || (documentId == 'goals'
+              && request.resource.data.keys().hasOnly([
+                'primaryGoal', 'energyKcal', 'proteinG', 'fiberG',
+                'waterMl', 'source', 'updatedAt'
+              ])
+              && request.resource.data.primaryGoal in [
+                'eat_healthier', 'increase_protein', 'improve_diversity',
+                'reduce_waste', 'hydrate', 'lose_weight', 'gain_weight', 'maintain_weight'
+              ]
+              && request.resource.data.energyKcal is number
+              && request.resource.data.energyKcal >= 800
+              && request.resource.data.energyKcal <= 6000
+              && request.resource.data.proteinG is number
+              && request.resource.data.proteinG >= 0
+              && request.resource.data.proteinG <= 400
+              && request.resource.data.fiberG is number
+              && request.resource.data.fiberG >= 0
+              && request.resource.data.fiberG <= 150
+              && request.resource.data.waterMl is number
+              && request.resource.data.waterMl >= 250
+              && request.resource.data.waterMl <= 8000
+              && request.resource.data.source == 'user')
+            || (documentId == 'preferences'
+              && request.resource.data.keys().hasOnly([
+                'dietType', 'preferredCuisines', 'dislikes',
+                'avoidFoods', 'allergies', 'updatedAt'
+              ])
+              && request.resource.data.dietType in ['omnivore', 'vegetarian', 'vegan', 'pescatarian']
+              && request.resource.data.preferredCuisines is list
+              && request.resource.data.dislikes is list
+              && request.resource.data.avoidFoods is list
+              && request.resource.data.allergies is list)
+            || (documentId == 'routine'
+              && request.resource.data.keys().hasOnly([
+                'wakeTime', 'sleepTime', 'preferredGroceryDay',
+                'breakfastTime', 'lunchTime', 'dinnerTime',
+                'hydrationRemindersEnabled', 'expiryAlertsEnabled',
+                'lowStockAlertsEnabled', 'mealRemindersEnabled',
+                'weeklySummaryEnabled', 'updatedAt'
+              ])
+              && request.resource.data.wakeTime is string
+              && request.resource.data.wakeTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')
+              && request.resource.data.sleepTime is string
+              && request.resource.data.sleepTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')
+              && request.resource.data.breakfastTime is string
+              && request.resource.data.breakfastTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')
+              && request.resource.data.lunchTime is string
+              && request.resource.data.lunchTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')
+              && request.resource.data.dinnerTime is string
+              && request.resource.data.dinnerTime.matches('^([01][0-9]|2[0-3]):[0-5][0-9]$')
+              && request.resource.data.preferredGroceryDay in [
+                'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'
+              ]
+              && request.resource.data.hydrationRemindersEnabled is bool
+              && request.resource.data.expiryAlertsEnabled is bool
+              && request.resource.data.lowStockAlertsEnabled is bool
+              && request.resource.data.mealRemindersEnabled is bool
+              && request.resource.data.weeklySummaryEnabled is bool)
+            || (documentId == 'ai'
+              && request.resource.data.keys().hasOnly([
+                'personalizationEnabled', 'updatedAt'
+              ])
+              && request.resource.data.personalizationEnabled is bool)
+          );
+        allow delete: if owner(uid);
+      }
+      match /notificationTokens/{tokenId} {
+        allow read: if owner(uid);
+        allow create: if owner(uid)
+          && request.resource.data.keys().hasOnly([
+            'token', 'platform', 'enabled', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.token is string
+          && request.resource.data.token.size() > 20
+          && request.resource.data.token.size() <= 4096
+          && request.resource.data.platform in ['android', 'ios', 'web', 'macos', 'windows', 'linux', 'fuchsia']
+          && request.resource.data.enabled == true
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+        allow update: if owner(uid)
+          && request.resource.data.keys().hasOnly([
+            'token', 'platform', 'enabled', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.token == resource.data.token
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.platform in ['android', 'ios', 'web', 'macos', 'windows', 'linux', 'fuchsia']
+          && request.resource.data.enabled is bool
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if owner(uid);
+      }
+      match /inventory/{inventoryId} {
+        allow read: if owner(uid);
+        allow create: if owner(uid)
+          && request.resource.data.keys().hasOnly([
+            'name', 'quantity', 'unit', 'storageLocation',
+            'expiryDate', 'foodId', 'lowStockThreshold', 'state', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 120
+          && request.resource.data.quantity is number
+          && request.resource.data.quantity > 0
+          && request.resource.data.unit in ['item', 'g', 'kg', 'ml', 'l']
+          && request.resource.data.storageLocation in ['pantry', 'fridge', 'freezer']
+          && (request.resource.data.foodId == null || request.resource.data.foodId is string)
+          && request.resource.data.lowStockThreshold is number
+          && request.resource.data.lowStockThreshold >= 0
+          && !request.resource.data.keys().hasAny(['state'])
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+        allow update: if owner(uid)
+          && request.resource.data.keys().hasOnly([
+            'name', 'quantity', 'unit', 'storageLocation',
+            'expiryDate', 'foodId', 'lowStockThreshold', 'state', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 120
+          && request.resource.data.quantity is number
+          && request.resource.data.quantity >= 0
+          && request.resource.data.unit in ['item', 'g', 'kg', 'ml', 'l']
+          && request.resource.data.storageLocation in ['pantry', 'fridge', 'freezer']
+          && (request.resource.data.foodId == null || request.resource.data.foodId is string)
+          && (!request.resource.data.keys().hasAny(['lowStockThreshold'])
+            || (request.resource.data.lowStockThreshold is number
+              && request.resource.data.lowStockThreshold >= 0))
+          && (!resource.data.keys().hasAny(['state'])
+            ? !request.resource.data.keys().hasAny(['state'])
+            : request.resource.data.state == resource.data.state)
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if owner(uid);
+        match /batches/{batchId} {
+          allow read: if owner(uid);
+          allow create: if owner(uid)
+            && request.resource.data.keys().hasOnly([
+              'quantityInitial', 'quantityRemaining', 'unit', 'purchaseDate',
+              'expiryDate', 'source', 'expiredAt', 'createdAt', 'updatedAt'
+            ])
+            && request.resource.data.quantityInitial is number
+            && request.resource.data.quantityInitial > 0
+            && request.resource.data.quantityRemaining == request.resource.data.quantityInitial
+            && request.resource.data.unit in ['item', 'g', 'kg', 'ml', 'l']
+            && request.resource.data.source in ['manual', 'grocery_intake']
+            && !request.resource.data.keys().hasAny(['expiredAt'])
+            && request.resource.data.createdAt == request.time
+            && request.resource.data.updatedAt == request.time;
+          allow update: if owner(uid)
+            && request.resource.data.keys().hasOnly([
+              'quantityInitial', 'quantityRemaining', 'unit', 'purchaseDate',
+              'expiryDate', 'source', 'expiredAt', 'createdAt', 'updatedAt'
+            ])
+            && request.resource.data.quantityInitial == resource.data.quantityInitial
+            && request.resource.data.unit == resource.data.unit
+            && request.resource.data.source == resource.data.source
+            && request.resource.data.createdAt == resource.data.createdAt
+            && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['quantityRemaining', 'updatedAt'])
+            && request.resource.data.quantityRemaining is number
+            && request.resource.data.quantityRemaining >= 0
+            && request.resource.data.quantityRemaining <= request.resource.data.quantityInitial
+            && request.resource.data.updatedAt == request.time;
+          allow delete: if owner(uid);
+        }
+        match /ledger/{ledgerId} {
+          allow read: if owner(uid);
+          allow create: if owner(uid)
+            && request.resource.data.keys().hasOnly([
+              'type', 'delta', 'unit', 'mealId', 'mealLineId',
+              'idempotencyKey', 'allocations', 'unresolved', 'createdAt'
+            ])
+            && request.resource.data.type == 'consume'
+            && request.resource.data.delta is number
+            && request.resource.data.delta <= 0
+            && request.resource.data.idempotencyKey == ledgerId
+            && request.resource.data.allocations is list
+            && request.resource.data.createdAt == request.time;
+          allow update: if owner(uid)
+            && request.resource.data.diff(resource.data).affectedKeys()
+              .hasOnly(['type', 'restoredAt'])
+            && resource.data.type == 'consume'
+            && request.resource.data.type == 'restore'
+            && request.resource.data.restoredAt == request.time;
+          allow delete: if false;
+        }
+      }
+      match /groceryItems/{groceryItemId} {
+        allow read: if owner(uid);
+        allow create: if owner(uid)
+          && request.resource.data.keys().hasOnly([
+            'name', 'quantity', 'unit', 'checked', 'source',
+            'sourceInventoryId', 'status', 'reasonText', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 120
+          && request.resource.data.quantity is number
+          && request.resource.data.quantity > 0
+          && request.resource.data.unit in ['item', 'g', 'kg', 'ml', 'l']
+          && request.resource.data.checked == false
+          && request.resource.data.source in ['manual', 'low_stock']
+          && (request.resource.data.sourceInventoryId == null
+            || request.resource.data.sourceInventoryId is string)
+          && request.resource.data.status in ['suggested', 'accepted', 'purchased', 'dismissed']
+          && request.resource.data.reasonText is string
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+        allow update: if owner(uid)
+          && request.resource.data.keys().hasOnly([
+            'name', 'quantity', 'unit', 'checked', 'source',
+            'sourceInventoryId', 'status', 'reasonText', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.name is string
+          && request.resource.data.name.size() > 0
+          && request.resource.data.name.size() <= 120
+          && request.resource.data.quantity is number
+          && request.resource.data.quantity > 0
+          && request.resource.data.unit in ['item', 'g', 'kg', 'ml', 'l']
+          && request.resource.data.checked is bool
+          && (!request.resource.data.keys().hasAny(['source'])
+            || request.resource.data.source in ['manual', 'low_stock'])
+          && (!request.resource.data.keys().hasAny(['sourceInventoryId'])
+            || request.resource.data.sourceInventoryId == null
+            || request.resource.data.sourceInventoryId is string)
+          && request.resource.data.status in ['suggested', 'accepted', 'purchased', 'dismissed']
+          && (!request.resource.data.keys().hasAny(['reasonText'])
+            || request.resource.data.reasonText is string)
+          && request.resource.data.updatedAt == request.time;
+        allow delete: if owner(uid);
+      }
+      match /hydrationLogs/{logId} {
+        allow read: if owner(uid);
+        allow create: if owner(uid)
+          && request.resource.data.keys().hasOnly(['amountMl', 'loggedAt', 'createdAt'])
+          && request.resource.data.amountMl is number
+          && request.resource.data.amountMl > 0
+          && request.resource.data.amountMl <= 5000
+          && request.resource.data.loggedAt == request.time
+          && request.resource.data.createdAt == request.time;
+        allow update: if false;
+        allow delete: if owner(uid);
+      }
+      match /nutritionDaily/{dateId} {
+        allow read: if owner(uid);
+        allow write: if false;
+      }
+      match /nutritionWeekly/{weekId} {
+        allow read: if owner(uid);
+        allow write: if false;
+      }
+      match /notifications/{notificationId} {
+        allow read: if owner(uid);
+        allow create, delete: if false;
+        allow update: if owner(uid)
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['readAt'])
+          && request.resource.data.readAt == request.time;
+      }
+      match /meals/{mealId} {
+        allow read: if owner(uid);
+        allow create: if owner(uid)
+          && request.resource.data.keys().hasOnly([
+            'mealType', 'consumedAt', 'source', 'originalText', 'items',
+            'totals', 'calculationVersion', 'createdAt', 'updatedAt'
+          ])
+          && request.resource.data.mealType in ['breakfast', 'lunch', 'dinner', 'snack']
+          && request.resource.data.source in ['manual', 'search', 'duplicate']
+          && request.resource.data.originalText is string
+          && request.resource.data.originalText.size() > 0
+          && request.resource.data.originalText.size() <= 1000
+          && request.resource.data.items is list
+          && request.resource.data.items.size() <= 50
+          && request.resource.data.totals.energyKcal is number
+          && request.resource.data.totals.energyKcal >= 0
+          && request.resource.data.totals.proteinG is number
+          && request.resource.data.totals.proteinG >= 0
+          && request.resource.data.totals.fiberG is number
+          && request.resource.data.totals.fiberG >= 0
+          && request.resource.data.calculationVersion in ['manual-v1', 'nutrition-v1']
+          && request.resource.data.createdAt == request.time
+          && request.resource.data.updatedAt == request.time;
+        allow update: if false;
+        allow delete: if false;
+      }
+      match /{document=**} { allow read, write: if false; }
+    }
+
+    match /foods/{foodId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    match /products/{productId} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+    match /{document=**} { allow read, write: if false; }
+  }
+}

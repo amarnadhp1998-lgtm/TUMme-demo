@@ -1,0 +1,29 @@
+name: tumme
+description: TUM.me personal food operating system foundation.
+publish_to: none
+version: 0.1.0+1
+
+environment:
+  sdk: '>=3.9.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^3.4.3
+  go_router: ^18.0.1
+  firebase_core: ^4.15.0
+  firebase_auth: ^6.7.0
+  cloud_firestore: ^6.10.0
+  cloud_functions: ^6.0.0
+  firebase_app_check: ^0.4.8
+  firebase_analytics: ^12.6.0
+  firebase_crashlytics: ^5.4.0
+  firebase_messaging: ^16.7.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true

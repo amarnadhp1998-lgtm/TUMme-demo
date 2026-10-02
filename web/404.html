@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+  <meta charset="UTF-8">
+  <meta name="robots" content="noindex">
+  <title>Opening TUM.me</title>
+</head>
+<body>
+  <script>
+    (() => {
+      const basePath = new URL(document.baseURI).pathname;
+      const requestedPath = window.location.pathname.startsWith(basePath)
+        ? window.location.pathname.slice(basePath.length)
+        : '';
+      const route = `/${requestedPath.replace(/^\/+/, '')}`;
+      window.location.replace(`${basePath}#${route}${window.location.search}`);
+    })();
+  </script>
+  <noscript>JavaScript is required to open TUM.me.</noscript>
+</body>
+</html>
